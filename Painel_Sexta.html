@@ -313,7 +313,7 @@ async function carregar(quieto) {
 }
 
 /* ====================== LÓGICA ====================== */
-const db = () => S.db || { jogadores: [], presenca: [], jogos: [], escalacao: [], gols: [], goleiros: [], financeiro: [], caixa: [] };
+const db = () => S.db || { jogadores: [], presenca: [], jogos: [], escalacao: [], gols: [], goleiros: [], financeiro: [], caixa: [], vaquinha: [] };
 const ativos = g => db().jogadores.filter(p => p.grupo === g && p.ativo !== 'Não').map(p => p.nome);
 
 /** Monta o formulário da rodada (existente ou em branco) para grupo+data */
@@ -733,9 +733,58 @@ function vFinResumo() {
 }
 function vFinanceiro() {
   const sub = S.fnSub || 'resumo';
-  const abas = [['resumo', 'Resumo'], ['mensal', 'Mensalidades'], ['ano', 'Ano'], ['caixa', 'Caixa']];
+  const abas = [['resumo', 'Resumo'], ['mensal', 'Mensalidades'], ['ano', 'Ano'], ['caixa', 'Caixa'], ['vaquinha', 'Vaquinha']];
   const h = '<div class="chips scroll" style="margin:4px 0 2px">' + abas.map(a => '<span class="chip' + (sub === a[0] ? ' on' : '') + '" data-act="fnSub" data-v="' + a[0] + '">' + a[1] + '</span>').join('') + '</div>';
-  return h + (sub === 'ano' ? vFinAno() : sub === 'caixa' ? vFinCaixa() : sub === 'mensal' ? vFinMensal() : vFinResumo());
+  return h + (sub === 'ano' ? vFinAno() : sub === 'caixa' ? vFinCaixa() : sub === 'vaquinha' ? vVaquinha() : sub === 'mensal' ? vFinMensal() : vFinResumo());
+}
+
+
+/* ---- Vaquinha (bolas) ---- */
+const COTA_VAQ = 10;
+function vVaquinha() {
+  const D = db(), g = S.grupo, L = (D.vaquinha || []).filter(r => r.grupo === g);
+  const contribs = L.filter(r => r.tipo === 'Contribuição'), compras = L.filter(r => r.tipo === 'Compra');
+  const arrec = contribs.reduce((t, r) => t + (Number(r.valor) || 0), 0), gasto = compras.reduce((t, r) => t + (Number(r.valor) || 0), 0);
+  const cotas = contribs.reduce((t, r) => t + (Number(r.cotas) || 0), 0);
+  if (S.vqCotas == null) S.vqCotas = 1;
+  if (!S.vqData) S.vqData = hojeISO();
+  const por = {};
+  contribs.forEach(r => { const p = por[r.nome] || (por[r.nome] = { nome: r.nome, cotas: 0, valor: 0, ult: '' }); p.cotas += Number(r.cotas) || 0; p.valor += Number(r.valor) || 0; if (String(r.data) > p.ult) p.ult = String(r.data); });
+  const quem = Object.values(por).sort((a, b) => b.valor - a.valor || a.nome.localeCompare(b.nome));
+  const faltam = ativos(g).filter(n => n !== '(sem nome)' && !por[n]).sort((a, b) => a.localeCompare(b));
+  let h = '<div class="card"><h2>Vaquinha das bolas</h2><div class="tiles"><div class="p"><b>' + brlS(arrec) + '</b><span class="mut">' + cotas + (cotas === 1 ? ' cota' : ' cotas') + ' · ' + quem.length + (quem.length === 1 ? ' pessoa' : ' pessoas') + '</span></div><div class="q"><b>' + brlS(gasto) + '</b><span class="mut">gasto em bolas</span></div></div>' +
+    '<div class="row" style="margin-top:10px"><span class="n"><b>Saldo da vaquinha</b></span><b>' + brlS(arrec - gasto) + '</b></div><div class="mut">Cada cota vale ' + brlS(COTA_VAQ) + '</div></div>';
+  if (!SOMENTE_LEITURA) {
+    const opts = '<option value="">Escolha o jogador</option>' + ativos(g).slice().sort((a, b) => a.localeCompare(b)).map(n => '<option' + (n === S.vqNome ? ' selected' : '') + '>' + esc(n) + '</option>').join('');
+    h += '<div class="card"><h2>Lançar contribuição</h2><label>Jogador</label><select data-act="vqNome">' + opts + '</select>' +
+      '<div class="row" style="margin-top:10px;align-items:end"><div><label>Cotas</label><div style="display:flex;align-items:center;gap:10px"><button class="btn sec sm" data-act="vqMenos" style="width:44px;flex:none">−</button><b style="min-width:28px;text-align:center;font-size:22px">' + S.vqCotas + '</b><button class="btn sec sm" data-act="vqMais" style="width:44px;flex:none">+</button></div></div>' +
+      '<div><label>Data</label><input type="date" data-act="vqData" value="' + esc(S.vqData) + '"></div></div>' +
+      '<button class="btn" data-act="vqSalvar" style="width:100%;margin-top:12px">Lançar ' + S.vqCotas + (S.vqCotas === 1 ? ' cota' : ' cotas') + ' · ' + brlS(S.vqCotas * COTA_VAQ) + '</button></div>';
+  }
+  h += '<div class="card"><h2>Quem contribuiu · ' + quem.length + '</h2>' + (quem.length ? quem.map(p => '<div class="pl"><span class="n">' + esc(p.nome) + '<small>' + p.cotas + (p.cotas === 1 ? ' cota' : ' cotas') + ' · última em ' + fmtData(p.ult) + '</small></span><b>' + brlS(p.valor) + '</b></div>').join('') : '<div class="mut">Ninguém contribuiu ainda.</div>') + '</div>';
+  h += '<div class="card"><h2>Ainda não contribuíram · ' + faltam.length + '</h2>' + (faltam.length ? '<div class="chips" style="flex-wrap:wrap">' + faltam.map(n => '<span class="chip"' + (SOMENTE_LEITURA ? '' : ' data-act="vqSel" data-n="' + esc(n) + '"') + '>' + esc(n) + '</span>').join('') + '</div>' + (SOMENTE_LEITURA ? '' : '<div class="mut" style="margin-top:8px">Toque no nome para escolher o jogador no lançamento.</div>') : '<div class="mut">Todos os ativos já contribuíram.</div>') + '</div>';
+  if (!SOMENTE_LEITURA) h += '<details class="card"' + (compras.length ? '' : '') + '><summary>Registrar compra das bolas</summary><label style="margin-top:10px">O que foi comprado</label><input id="vq_desc" placeholder="2 bolas de campo"><div class="row" style="margin-top:8px"><div><label>Valor (R$)</label><input id="vq_valor" inputmode="decimal" placeholder="150"></div><div><label>Data</label><input id="vq_dcompra" type="date" value="' + esc(hojeISO()) + '"></div></div><button class="btn sec" data-act="vqCompra" style="width:100%;margin-top:10px">Registrar compra</button></details>';
+  const hist = L.slice().sort((a, b) => String(b.data).localeCompare(String(a.data)) || (b.linha || 0) - (a.linha || 0));
+  if (hist.length) h += '<details class="card"><summary>Histórico · ' + hist.length + ' lançamentos</summary><div style="margin-top:8px">' + hist.map(r => '<div class="pl"><span class="n">' + esc(r.nome) + '<small>' + (r.tipo === 'Compra' ? 'Compra' : (r.cotas + (Number(r.cotas) === 1 ? ' cota' : ' cotas'))) + ' · ' + fmtData(r.data) + '</small></span><b>' + (r.tipo === 'Compra' ? '−' : '') + brlS(Number(r.valor) || 0) + '</b>' + (SOMENTE_LEITURA ? '' : '<span class="st" data-act="vqDel" data-l="' + esc(r.linha) + '" data-t="' + esc(r.tipo) + '" data-n="' + esc(r.nome) + '" style="min-width:0;padding:6px 10px" title="Excluir">✕</span>') + '</div>').join('') + '</div></details>';
+  return h;
+}
+async function salvarVaquinha() {
+  if (!S.vqNome) { toast('Escolha o jogador'); return; }
+  try {
+    await apiGravar({ action: 'salvarVaquinha', grupo: S.grupo, tipo: 'Contribuição', nome: S.vqNome, cotas: S.vqCotas, data: S.vqData || hojeISO() });
+    toast('Contribuição lançada: ' + S.vqNome + ' · ' + brlS(S.vqCotas * COTA_VAQ)); S.vqNome = ''; S.vqCotas = 1; await carregar(true);
+  } catch (e) { S.msg = { t: 'err', m: e.message }; render(); }
+}
+async function salvarCompraVaquinha() {
+  const d = document.getElementById('vq_desc').value.trim(), v = document.getElementById('vq_valor').value, dt = document.getElementById('vq_dcompra').value || hojeISO();
+  if (!d || !v) { toast('Informe o que foi comprado e o valor'); return; }
+  try { await apiGravar({ action: 'salvarVaquinha', grupo: S.grupo, tipo: 'Compra', nome: d, valor: v, data: dt }); toast('Compra registrada'); await carregar(true); }
+  catch (e) { S.msg = { t: 'err', m: e.message }; render(); }
+}
+async function excluirVaquinha(l, t, n) {
+  if (!confirm('Excluir o lançamento de ' + n + ' da vaquinha?')) return;
+  try { await apiGravar({ action: 'excluirVaquinha', linha: Number(l), tipo: t, nome: n }); toast('Lançamento excluído'); await carregar(true); }
+  catch (e) { S.msg = { t: 'err', m: e.message }; render(); }
 }
 
 /* ---- Financeiro ---- */
@@ -820,6 +869,12 @@ document.addEventListener('click', async ev => {
     case 'cxNovo': { const mv = (document.getElementById('cxMesNovo') || {}).value; if (!mv || !mv.trim()) { toast('Informe o mês'); return; } S.cxEdit = mv.trim(); break; }
     case 'cxCancelar': S.cxEdit = null; break;
     case 'cxSalvar': salvarCaixa(); return;
+    case 'vqMais': S.vqCotas = Math.min(100, (S.vqCotas || 1) + 1); break;
+    case 'vqMenos': S.vqCotas = Math.max(1, (S.vqCotas || 1) - 1); break;
+    case 'vqSel': S.vqNome = el.dataset.n; window.scrollTo(0, 0); break;
+    case 'vqSalvar': return salvarVaquinha();
+    case 'vqCompra': return salvarCompraVaquinha();
+    case 'vqDel': return excluirVaquinha(el.dataset.l, el.dataset.t, el.dataset.n);
     case 'cobrar': copiarTxt(msgCobranca()); return;
     case 'parabens': copiarTxt(msgParabens(el.dataset.n)); return;
     case 'ativo': return alternarAtivo(el.dataset.g, el.dataset.n);
@@ -848,6 +903,8 @@ document.addEventListener('change', ev => {
     case 'stGrupo': S.stGrupo = v; break;
     case 'fnGrupo': S.fnGrupo = v; break;
     case 'fnMes': S.fnMes = v; break;
+    case 'vqNome': S.vqNome = v; break;
+    case 'vqData': S.vqData = v; break;
     default: return;
   }
   render();
