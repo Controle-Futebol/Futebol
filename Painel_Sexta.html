@@ -741,6 +741,36 @@ function vFinanceiro() {
 
 /* ---- Vaquinha (bolas) ---- */
 const COTA_VAQ = 10;
+
+function pagantes(g) {   // ativos que pagam mensalidade (tira quem está como Isento no mês mais recente da planilha)
+  const D = db(), F = D.financeiro.filter(r => r.grupo === g);
+  const idx = m => { const p = String(m).split('/'); return (+p[1]) * 12 + MESES.findIndex(x => x.toLowerCase() === String(p[0]).toLowerCase()); };
+  let ult = -1; F.forEach(r => { const i = idx(r.mes); if (i > ult) ult = i; });
+  const isentos = new Set(F.filter(r => idx(r.mes) === ult && r.pago === 'Isento').map(r => r.nome));
+  return ativos(g).filter(n => n !== '(sem nome)' && !isentos.has(n));
+}
+function dadosVaquinha() {
+  const g = S.grupo, L = (db().vaquinha || []).filter(r => r.grupo === g);
+  const contribs = L.filter(r => r.tipo === 'Contribuição'), compras = L.filter(r => r.tipo === 'Compra');
+  const arrec = contribs.reduce((t, r) => t + (Number(r.valor) || 0), 0), gasto = compras.reduce((t, r) => t + (Number(r.valor) || 0), 0);
+  const por = {};
+  contribs.forEach(r => { const p = por[r.nome] || (por[r.nome] = { nome: r.nome, cotas: 0, valor: 0, ult: '' }); p.cotas += Number(r.cotas) || 0; p.valor += Number(r.valor) || 0; if (String(r.data) > p.ult) p.ult = String(r.data); });
+  const quem = Object.values(por).sort((a, b) => b.valor - a.valor || a.nome.localeCompare(b.nome));
+  const faltam = pagantes(g).filter(n => !por[n]).sort((a, b) => a.localeCompare(b));
+  const cotas = quem.reduce((t, p) => t + p.cotas, 0);
+  return { arrec, gasto, cotas, quem, faltam, por, compras };
+}
+function msgVaquinha() {
+  const V = dadosVaquinha(), c = n => n + (n === 1 ? ' cota' : ' cotas');
+  return '⚽ VAQUINHA DAS BOLAS · CROMA 2\n' +
+    'Cada cota: ' + brlS(COTA_VAQ) + '\n\n' +
+    'Arrecadado: ' + brlS(V.arrec) + ' (' + c(V.cotas) + ' · ' + V.quem.length + (V.quem.length === 1 ? ' pessoa' : ' pessoas') + ')\n' +
+    'Gasto em bolas: ' + brlS(V.gasto) + '\n' +
+    'Saldo: ' + brlS(V.arrec - V.gasto) + '\n\n' +
+    '✅ JÁ CONTRIBUÍRAM (' + V.quem.length + ')\n' + (V.quem.map(p => '• ' + p.nome + ' · ' + c(p.cotas) + ' · ' + brlS(p.valor)).join('\n') || '• Ninguém ainda') + '\n\n' +
+    '⏳ AINDA FALTAM (' + V.faltam.length + ')\n' + (V.faltam.map(n => '• ' + n).join('\n') || '• Todos já contribuíram! 🎉') + '\n\n' +
+    'Quem já pagou e não está na lista, avise o organizador.';
+}
 function vVaquinha() {
   const D = db(), g = S.grupo, L = (D.vaquinha || []).filter(r => r.grupo === g);
   const contribs = L.filter(r => r.tipo === 'Contribuição'), compras = L.filter(r => r.tipo === 'Compra');
@@ -751,9 +781,9 @@ function vVaquinha() {
   const por = {};
   contribs.forEach(r => { const p = por[r.nome] || (por[r.nome] = { nome: r.nome, cotas: 0, valor: 0, ult: '' }); p.cotas += Number(r.cotas) || 0; p.valor += Number(r.valor) || 0; if (String(r.data) > p.ult) p.ult = String(r.data); });
   const quem = Object.values(por).sort((a, b) => b.valor - a.valor || a.nome.localeCompare(b.nome));
-  const faltam = ativos(g).filter(n => n !== '(sem nome)' && !por[n]).sort((a, b) => a.localeCompare(b));
+  const faltam = pagantes(g).filter(n => !por[n]).sort((a, b) => a.localeCompare(b));
   let h = '<div class="card"><h2>Vaquinha das bolas</h2><div class="tiles"><div class="p"><b>' + brlS(arrec) + '</b><span class="mut">' + cotas + (cotas === 1 ? ' cota' : ' cotas') + ' · ' + quem.length + (quem.length === 1 ? ' pessoa' : ' pessoas') + '</span></div><div class="q"><b>' + brlS(gasto) + '</b><span class="mut">gasto em bolas</span></div></div>' +
-    '<div class="row" style="margin-top:10px"><span class="n"><b>Saldo da vaquinha</b></span><b>' + brlS(arrec - gasto) + '</b></div><div class="mut">Cada cota vale ' + brlS(COTA_VAQ) + '</div></div>';
+    '<div class="row" style="margin-top:10px"><span class="n"><b>Saldo da vaquinha</b></span><b>' + brlS(arrec - gasto) + '</b></div><div class="mut">Cada cota vale ' + brlS(COTA_VAQ) + '</div><button class="btn sec" data-act="vqResumo" style="width:100%;margin-top:12px">Copiar resumo para o WhatsApp</button><details style="margin-top:10px"><summary>Ver o resumo</summary><pre style="white-space:pre-wrap;font:13px/1.45 inherit;margin:8px 0 0">' + esc(msgVaquinha()) + '</pre></details></div>';
   if (!SOMENTE_LEITURA) {
     const opts = '<option value="">Escolha o jogador</option>' + ativos(g).slice().sort((a, b) => a.localeCompare(b)).map(n => '<option' + (n === S.vqNome ? ' selected' : '') + '>' + esc(n) + '</option>').join('');
     h += '<div class="card"><h2>Lançar contribuição</h2><label>Jogador</label><select data-act="vqNome">' + opts + '</select>' +
@@ -762,7 +792,7 @@ function vVaquinha() {
       '<button class="btn" data-act="vqSalvar" style="width:100%;margin-top:12px">Lançar ' + S.vqCotas + (S.vqCotas === 1 ? ' cota' : ' cotas') + ' · ' + brlS(S.vqCotas * COTA_VAQ) + '</button></div>';
   }
   h += '<div class="card"><h2>Quem contribuiu · ' + quem.length + '</h2>' + (quem.length ? quem.map(p => '<div class="pl"><span class="n">' + esc(p.nome) + '<small>' + p.cotas + (p.cotas === 1 ? ' cota' : ' cotas') + ' · última em ' + fmtData(p.ult) + '</small></span><b>' + brlS(p.valor) + '</b></div>').join('') : '<div class="mut">Ninguém contribuiu ainda.</div>') + '</div>';
-  h += '<div class="card"><h2>Ainda não contribuíram · ' + faltam.length + '</h2>' + (faltam.length ? '<div class="chips" style="flex-wrap:wrap">' + faltam.map(n => '<span class="chip"' + (SOMENTE_LEITURA ? '' : ' data-act="vqSel" data-n="' + esc(n) + '"') + '>' + esc(n) + '</span>').join('') + '</div>' + (SOMENTE_LEITURA ? '' : '<div class="mut" style="margin-top:8px">Toque no nome para escolher o jogador no lançamento.</div>') : '<div class="mut">Todos os ativos já contribuíram.</div>') + '</div>';
+  h += '<div class="card"><h2>Ainda não contribuíram · ' + faltam.length + '</h2><div class="mut" style="margin:-4px 0 8px">Ativos que pagam mensalidade</div>' + (faltam.length ? '<div class="chips" style="flex-wrap:wrap">' + faltam.map(n => '<span class="chip"' + (SOMENTE_LEITURA ? '' : ' data-act="vqSel" data-n="' + esc(n) + '"') + '>' + esc(n) + '</span>').join('') + '</div>' + (SOMENTE_LEITURA ? '' : '<div class="mut" style="margin-top:8px">Toque no nome para escolher o jogador no lançamento.</div>') : '<div class="mut">Todos os ativos já contribuíram.</div>') + '</div>';
   if (!SOMENTE_LEITURA) h += '<details class="card"' + (compras.length ? '' : '') + '><summary>Registrar compra das bolas</summary><label style="margin-top:10px">O que foi comprado</label><input id="vq_desc" placeholder="2 bolas de campo"><div class="row" style="margin-top:8px"><div><label>Valor (R$)</label><input id="vq_valor" inputmode="decimal" placeholder="150"></div><div><label>Data</label><input id="vq_dcompra" type="date" value="' + esc(hojeISO()) + '"></div></div><button class="btn sec" data-act="vqCompra" style="width:100%;margin-top:10px">Registrar compra</button></details>';
   const hist = L.slice().sort((a, b) => String(b.data).localeCompare(String(a.data)) || (b.linha || 0) - (a.linha || 0));
   if (hist.length) h += '<details class="card"><summary>Histórico · ' + hist.length + ' lançamentos</summary><div style="margin-top:8px">' + hist.map(r => '<div class="pl"><span class="n">' + esc(r.nome) + '<small>' + (r.tipo === 'Compra' ? 'Compra' : (r.cotas + (Number(r.cotas) === 1 ? ' cota' : ' cotas'))) + ' · ' + fmtData(r.data) + '</small></span><b>' + (r.tipo === 'Compra' ? '−' : '') + brlS(Number(r.valor) || 0) + '</b>' + (SOMENTE_LEITURA ? '' : '<span class="st" data-act="vqDel" data-l="' + esc(r.linha) + '" data-t="' + esc(r.tipo) + '" data-n="' + esc(r.nome) + '" style="min-width:0;padding:6px 10px" title="Excluir">✕</span>') + '</div>').join('') + '</div></details>';
@@ -823,7 +853,7 @@ document.addEventListener('click', async ev => {
   if (['SELECT', 'INPUT'].includes(el.tagName)) return;      // tratado em 'change'
   const a = el.dataset.act, gi = +el.dataset.g, k = +el.dataset.k, i = +el.dataset.i;
   const J = S.jogos[gi];
-  if (SOMENTE_LEITURA && !['setGrupo', 'metrica', 'cartaoRodada', 'cartaoAba', 'cartaoBaixar', 'cartaoShare', 'cartaoFechar', 'fnMesSel', 'fnSub', 'cobrar', 'parabens'].includes(a)) return;
+  if (SOMENTE_LEITURA && !['setGrupo', 'metrica', 'cartaoRodada', 'cartaoAba', 'cartaoBaixar', 'cartaoShare', 'cartaoFechar', 'fnMesSel', 'fnSub', 'cobrar', 'parabens', 'vqResumo'].includes(a)) return;
   switch (a) {
     case 'conf': { const p = S.pres[i]; p.conf = p.conf === 'Não' ? 'Sim' : p.conf === 'Sim' ? 'Talvez' : 'Não'; break; }
     case 'veio': { const p = S.pres[i]; p.veio = !p.veio; if (!p.veio) S.jogos.forEach(j => { j.esc1 = j.esc1.filter(n => n !== p.nome); j.esc2 = j.esc2.filter(n => n !== p.nome); }); break; }
@@ -873,6 +903,7 @@ document.addEventListener('click', async ev => {
     case 'vqMenos': S.vqCotas = Math.max(1, (S.vqCotas || 1) - 1); break;
     case 'vqSel': S.vqNome = el.dataset.n; window.scrollTo(0, 0); break;
     case 'vqSalvar': return salvarVaquinha();
+    case 'vqResumo': copiarTxt(msgVaquinha()); return;
     case 'vqCompra': return salvarCompraVaquinha();
     case 'vqDel': return excluirVaquinha(el.dataset.l, el.dataset.t, el.dataset.n);
     case 'cobrar': copiarTxt(msgCobranca()); return;
