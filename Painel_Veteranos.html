@@ -444,6 +444,7 @@ function conferencia() {
 /* ====================== RENDER ====================== */
 function corDot(n) { const c = corTime(n); return '<i class="dot" style="background:' + c.bg + '"></i>'; }
 function render() {
+  const _y = window.scrollY;
   aplicarTema();
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
   if (SOMENTE_LEITURA) { document.querySelector('#nav [data-tab=lancar]').classList.add('hide'); document.getElementById('btnRef').classList.add('hide'); document.getElementById('btnCfg').classList.add('hide'); }
@@ -475,6 +476,7 @@ function render() {
     d.innerHTML = '<button class="btn" data-act="salvar">Salvar rodada · ' + fmtData(S.data).slice(0, 5) + '</button>';
     document.body.appendChild(d);
   }
+  window.scrollTo(0, _y);
 }
 
 function vHero() {
