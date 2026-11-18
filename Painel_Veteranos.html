@@ -222,13 +222,29 @@ dialog#dlgCard{width:min(96vw,560px);max-height:94vh;padding:12px;overflow:auto}
   <div class="acoes"><button class="btn sec" data-act="cartaoFechar">Fechar</button><button class="btn sec" data-act="cartaoBaixar">Baixar</button><button class="btn" data-act="cartaoShare">Compartilhar</button></div>
 </dialog>
 
+<dialog id="dlgLogin">
+  <h2 style="margin-top:0">Entrar</h2>
+  <label>Usuário</label><input id="lgUser" autocapitalize="none" autocorrect="off" autocomplete="username" placeholder="seu usuário">
+  <label style="margin-top:10px">Senha</label><input id="lgPass" type="password" autocomplete="current-password" placeholder="sua senha">
+  <p class="mut" id="lgMsg" style="min-height:18px"></p>
+  <p class="mut">Depois de entrar, o painel lembra de você neste aparelho por 90 dias.</p>
+  <div class="row" style="margin-top:10px"><button class="btn sec" id="lgCancel">Cancelar</button><button class="btn" id="lgOk">Entrar</button></div>
+</dialog>
+
+<dialog id="dlgUsr">
+  <div id="usrBody"></div>
+  <div class="row" style="margin-top:12px"><button class="btn sec" id="usrFechar">Fechar</button></div>
+</dialog>
+
 <dialog id="dlgCfg">
   <h2 style="margin-top:0">Configuração</h2>
   <label>Endereço do Web App (termina em /exec)</label>
   <input id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec">
-  <label style="margin-top:10px">PIN de lançamento</label>
-  <input id="cfgPin" type="password" placeholder="PIN" autocomplete="off">
-  <p class="mut">O endereço e o PIN ficam guardados só neste aparelho.</p>
+  <div id="cfgConta" style="margin-top:12px"></div>
+  <details style="margin-top:10px"><summary class="mut">PIN antigo</summary>
+    <input id="cfgPin" type="password" placeholder="PIN (só vale se ainda não houver usuários)" autocomplete="off" style="margin-top:6px">
+  </details>
+  <p class="mut">O endereço e o login ficam guardados só neste aparelho.</p>
   <div class="row" style="margin-top:10px"><button class="btn sec" id="cfgCancel">Cancelar</button><button class="btn" id="cfgSave">Salvar</button></div>
 </dialog>
 
@@ -248,9 +264,13 @@ const SOMENTE_LEITURA = false;   // true na versão para compartilhar (sem lanç
 const GERADO_EM = '';
 const DADOS_EMBUTIDOS = null;
 
+const PFX = 'vet';   // separa as configurações de cada grupo no mesmo site
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 const cfg = {
-  url: localStorage.getItem('ft_url') || URL_PADRAO,
-  pin: localStorage.getItem('ft_pin') || ''
+  url: lsGet('ft_url_' + PFX) || URL_PADRAO,
+  pin: lsGet('ft_pin_' + PFX) || '',
+  token: lsGet('ft_token_' + PFX) || '',
+  user: (() => { try { return JSON.parse(lsGet('ft_user_' + PFX) || 'null'); } catch (e) { return null; } })()
 };
 const GRUPO_DIA = { 'Croma 2 Futebol de Sexta': 5, 'Veteranos São Francisco': 2 };
 const GRUPO_INFO = {
@@ -297,12 +317,20 @@ async function apiLer() {
   if (!j.ok) throw new Error(j.erro || 'Falha ao ler');
   return j.dados;
 }
-async function apiGravar(body) {
+async function apiGravar(body, retry) {
   if (!cfg.url) throw new Error('Configure o endereço do Web App (botão Config).');
-  if (!cfg.pin) throw new Error('Informe o PIN em Config.');
-  const r = await fetch(cfg.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({}, body, { pin: cfg.pin })) });
+  if (!cfg.token && !cfg.pin) await pedirLogin();
+  const auth = cfg.token ? { token: cfg.token } : { pin: cfg.pin };
+  const r = await fetch(cfg.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({}, body, auth)) });
   const j = await r.json();
-  if (!j.ok) throw new Error(j.erro || 'Falha ao gravar');
+  if (!j.ok) {
+    if (j.auth && !retry) {   // sessão vencida ou PIN que não vale mais: pede o login e tenta de novo
+      limparSessao(); cfg.pin = ''; try { localStorage.removeItem('ft_pin_' + PFX); } catch (e) { }
+      await pedirLogin(j.erro);
+      return apiGravar(body, true);
+    }
+    throw new Error(j.erro || 'Falha ao gravar');
+  }
   return j;
 }
 async function carregar(quieto) {
@@ -861,11 +889,123 @@ document.addEventListener('input', ev => {
 document.getElementById('nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { S.tab = b.dataset.tab; render(); window.scrollTo(0, 0); } });
 document.getElementById('btnRef').addEventListener('click', () => carregar());
 const dlg = document.getElementById('dlgCfg');
-document.getElementById('btnCfg').addEventListener('click', () => { document.getElementById('cfgUrl').value = cfg.url; document.getElementById('cfgPin').value = cfg.pin; dlg.showModal(); });
+document.getElementById('btnCfg').addEventListener('click', () => { document.getElementById('cfgUrl').value = cfg.url; document.getElementById('cfgPin').value = cfg.pin; cfgConta(); dlg.showModal(); });
 document.getElementById('cfgCancel').addEventListener('click', () => dlg.close());
 document.getElementById('cfgSave').addEventListener('click', () => {
   cfg.url = document.getElementById('cfgUrl').value.trim(); cfg.pin = document.getElementById('cfgPin').value.trim();
-  localStorage.setItem('ft_url', cfg.url); localStorage.setItem('ft_pin', cfg.pin); dlg.close(); carregar();
+  try { localStorage.setItem('ft_url_' + PFX, cfg.url); localStorage.setItem('ft_pin_' + PFX, cfg.pin); } catch (e) { } dlg.close(); carregar();
+});
+
+
+/* ====================== LOGIN (usuário e senha) ====================== */
+function salvarSessao(j) {
+  cfg.token = j.token; cfg.user = { nome: j.nome, role: j.role }; cfg.pin = '';
+  try { localStorage.setItem('ft_token_' + PFX, cfg.token); localStorage.setItem('ft_user_' + PFX, JSON.stringify(cfg.user)); localStorage.removeItem('ft_pin_' + PFX); } catch (e) { }
+}
+function limparSessao() {
+  cfg.token = ''; cfg.user = null;
+  try { localStorage.removeItem('ft_token_' + PFX); localStorage.removeItem('ft_user_' + PFX); } catch (e) { }
+}
+let loginWait = null;
+function pedirLogin(msg) {
+  return new Promise((res, rej) => {
+    const d = document.getElementById('dlgLogin');
+    document.getElementById('lgMsg').textContent = msg || '';
+    document.getElementById('lgPass').value = '';
+    try { document.getElementById('lgUser').value = localStorage.getItem('ft_lastuser_' + PFX) || document.getElementById('lgUser').value; } catch (e) { }
+    if (loginWait) loginWait.rej(new Error('Login cancelado'));
+    loginWait = { res, rej };
+    if (!d.open) d.showModal();
+    setTimeout(() => document.getElementById(document.getElementById('lgUser').value ? 'lgPass' : 'lgUser').focus(), 60);
+  });
+}
+async function enviarLogin() {
+  const u = document.getElementById('lgUser').value.trim(), s = document.getElementById('lgPass').value, m = document.getElementById('lgMsg'), b = document.getElementById('lgOk');
+  if (!u || !s) { m.textContent = 'Informe usuário e senha.'; return; }
+  if (!cfg.url) { m.textContent = 'Configure o endereço do Web App primeiro (engrenagem).'; return; }
+  b.disabled = true; m.textContent = 'Entrando…';
+  try {
+    const r = await fetch(cfg.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'login', usuario: u, senha: s }) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.erro || 'Falha no login');
+    salvarSessao(j);
+    try { localStorage.setItem('ft_lastuser_' + PFX, u); } catch (e) { }
+    const w = loginWait; loginWait = null;
+    document.getElementById('dlgLogin').close();
+    toast('Olá, ' + j.nome);
+    if (w) w.res();
+  } catch (e) { m.textContent = e.message; }
+  b.disabled = false;
+}
+function fecharLogin() {
+  const w = loginWait; loginWait = null;
+  const d = document.getElementById('dlgLogin'); if (d.open) d.close();
+  if (w) w.rej(new Error('Login cancelado'));
+}
+function cfgConta() {
+  const el = document.getElementById('cfgConta'); if (!el) return;
+  el.innerHTML = (cfg.token && cfg.user)
+    ? '<div class="mut">Conectado como</div><div style="font-weight:700;margin-bottom:8px">' + esc(cfg.user.nome) + (cfg.user.role === 'admin' ? ' · administrador' : '') + '</div>' +
+      '<div class="row"><button class="btn sec sm" data-cfg="senha">Trocar senha</button>' + (cfg.user.role === 'admin' ? '<button class="btn sec sm" data-cfg="users">Usuários</button>' : '') + '<button class="btn sec sm" data-cfg="sair">Sair</button></div>'
+    : '<div class="mut" style="margin-bottom:8px">Não conectado. Ao lançar algo, o painel pede o login.</div><button class="btn sec sm" data-cfg="entrar">Entrar agora</button>';
+}
+function usrAbrir(html) { document.getElementById('usrBody').innerHTML = html; const d = document.getElementById('dlgUsr'); if (!d.open) d.showModal(); }
+function abrirSenha() {
+  document.getElementById('dlgCfg').close();
+  usrAbrir('<h2 style="margin-top:0">Trocar senha</h2><label>Senha atual</label><input id="sn_a" type="password" autocomplete="current-password">' +
+    '<label style="margin-top:8px">Nova senha (mínimo 6)</label><input id="sn_n" type="password" autocomplete="new-password">' +
+    '<label style="margin-top:8px">Repita a nova senha</label><input id="sn_r" type="password" autocomplete="new-password">' +
+    '<p class="mut" id="sn_m" style="min-height:18px"></p><button class="btn" data-usr="senhaSalvar" style="width:100%">Salvar nova senha</button>');
+}
+async function salvarSenha() {
+  const a = document.getElementById('sn_a').value, n = document.getElementById('sn_n').value, r = document.getElementById('sn_r').value, m = document.getElementById('sn_m');
+  if (n !== r) { m.textContent = 'As senhas novas não são iguais.'; return; }
+  try { await apiGravar({ action: 'trocarSenha', senhaAtual: a, senhaNova: n }); document.getElementById('dlgUsr').close(); toast('Senha trocada'); }
+  catch (e) { m.textContent = e.message; }
+}
+async function abrirUsuarios() {
+  document.getElementById('dlgCfg').close();
+  try {
+    const j = await apiGravar({ action: 'listarUsuarios' });
+    usrAbrir('<h2 style="margin-top:0">Usuários</h2>' +
+      j.usuarios.map(u => '<div class="pl"><span class="n">' + esc(u.nome) + '<small>' + esc(u.login) + ' · ' + (u.role === 'admin' ? 'administrador' : 'lança dados') + '</small></span><span class="st" data-usr="rem" data-l="' + esc(u.login) + '" style="min-width:0;padding:6px 10px" title="Remover">✕</span></div>').join('') +
+      '<h2 style="margin-top:16px">Novo usuário ou redefinir senha</h2>' +
+      '<label>Usuário (login)</label><input id="us_l" autocapitalize="none" autocorrect="off" placeholder="ex.: carlito">' +
+      '<label style="margin-top:8px">Nome</label><input id="us_n" placeholder="ex.: Carlito">' +
+      '<label style="margin-top:8px">Senha (mínimo 6)</label><input id="us_s" type="text" autocomplete="off" placeholder="passe a senha para a pessoa">' +
+      '<label style="margin-top:8px">Papel</label><select id="us_r"><option value="lancador">Lança dados</option><option value="admin">Administrador (também gerencia usuários)</option></select>' +
+      '<p class="mut" id="us_m" style="min-height:18px"></p><button class="btn" data-usr="usrSalvar" style="width:100%">Salvar usuário</button>');
+  } catch (e) { if (e.message !== 'Login cancelado') toast(e.message, 3500); }
+}
+async function salvarUsuario() {
+  const g = id => document.getElementById(id).value, m = document.getElementById('us_m');
+  try { await apiGravar({ action: 'salvarUsuario', login: g('us_l'), nome: g('us_n'), senha: g('us_s'), role: g('us_r') }); toast('Usuário salvo'); abrirUsuariosSemFechar(); }
+  catch (e) { m.textContent = e.message; }
+}
+function abrirUsuariosSemFechar() { const d = document.getElementById('dlgCfg'); if (d.open) d.close(); abrirUsuarios(); }
+async function removerUsuario(l) {
+  if (!confirm('Remover o usuário ' + l + '? Ele perde o acesso para lançar.')) return;
+  try { await apiGravar({ action: 'removerUsuario', login: l }); toast('Usuário removido'); abrirUsuarios(); }
+  catch (e) { toast(e.message, 3500); }
+}
+document.getElementById('lgOk').addEventListener('click', enviarLogin);
+document.getElementById('lgCancel').addEventListener('click', fecharLogin);
+document.getElementById('dlgLogin').addEventListener('close', () => { if (loginWait) { const w = loginWait; loginWait = null; w.rej(new Error('Login cancelado')); } });
+document.getElementById('lgPass').addEventListener('keydown', e => { if (e.key === 'Enter') enviarLogin(); });
+document.getElementById('lgUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('lgPass').focus(); });
+document.getElementById('usrFechar').addEventListener('click', () => document.getElementById('dlgUsr').close());
+document.getElementById('usrBody').addEventListener('click', e => {
+  const el = e.target.closest('[data-usr]'); if (!el) return;
+  if (el.dataset.usr === 'senhaSalvar') salvarSenha(); else if (el.dataset.usr === 'usrSalvar') salvarUsuario(); else if (el.dataset.usr === 'rem') removerUsuario(el.dataset.l);
+});
+document.getElementById('cfgConta').addEventListener('click', e => {
+  const el = e.target.closest('[data-cfg]'); if (!el) return; const a = el.dataset.cfg;
+  if (a === 'entrar') { document.getElementById('dlgCfg').close(); pedirLogin().then(cfgConta, () => { }); }
+  else if (a === 'sair') {
+    const t = cfg.token; limparSessao(); cfgConta(); toast('Você saiu');
+    try { fetch(cfg.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'sair', token: t }) }); } catch (e) { }
+  }
+  else if (a === 'senha') abrirSenha(); else if (a === 'users') abrirUsuarios();
 });
 
 /* ====================== CARTÕES (imagens) ====================== */
