@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ===== Temas por grupo: La Liga (sexta) e Premier League (terça) ===== */
+/* ===== Temas por grupo: La Liga (sexta) e cores do escudo (terça) ===== */
 :root,html[data-g="ll"]{
   --bg:#0b0507;--bg2:#1c0b0f;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.11);--line:rgba(255,255,255,.14);
   --ink:#fff;--mut:#c3b0b2;--acc:#ff4b3e;--acc2:#ff9d1c;--acc3:#fff;--onacc:#fff;
@@ -17,11 +17,11 @@
   --stripe:repeating-linear-gradient(115deg,rgba(255,75,62,.0) 0 22px,rgba(255,75,62,.22) 22px 34px);
 }
 html[data-g="pl"]{
-  --bg:#16001f;--bg2:#3b0a4d;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.14);--line:rgba(255,255,255,.18);
-  --ink:#fff;--mut:#cdb8e0;--acc:#00ff85;--acc2:#e90052;--acc3:#04f5ff;--onacc:#2a0038;
-  --ok:#00ff85;--okbg:rgba(0,255,133,.12);--warn:#ffd84d;--warnbg:rgba(255,216,77,.13);--bad:#ff5c8a;--badbg:rgba(233,0,82,.18);
-  --hero:linear-gradient(135deg,#4d1362 0%,#16001f 75%);
-  --stripe:radial-gradient(circle at 92% 14%,rgba(4,245,255,.30) 0 34px,transparent 35px),radial-gradient(circle at 80% 22%,rgba(233,0,82,.34) 0 22px,transparent 23px);
+  --bg:#06112e;--bg2:#163a8a;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.14);--line:rgba(255,255,255,.18);
+  --ink:#fff;--mut:#b9c7e8;--acc:#f0c04a;--acc2:#ffffff;--acc3:#45c3d3;--onacc:#0a1f5c;
+  --ok:#3ddc84;--okbg:rgba(61,220,132,.13);--warn:#ffd84d;--warnbg:rgba(255,216,77,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.16);
+  --hero:linear-gradient(135deg,#1c4eb4 0%,#06112e 75%);
+  --stripe:radial-gradient(circle at 92% 14%,rgba(69,195,211,.30) 0 34px,transparent 35px),radial-gradient(circle at 80% 22%,rgba(240,192,74,.34) 0 22px,transparent 23px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}
@@ -44,14 +44,17 @@ h1,h2,h3,.disp{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;l
 .seg button.on b{color:var(--onacc)}
 .seg button[data-v="Croma 2 Futebol de Sexta"].on{background:#ff4b3e;border-color:#ff4b3e;color:#fff}
 .seg button[data-v="Croma 2 Futebol de Sexta"].on b{color:#fff}
-.seg button[data-v="Veteranos São Francisco"].on{background:#00ff85;border-color:#00ff85;color:#2a0038}
-.seg button[data-v="Veteranos São Francisco"].on b{color:#2a0038}
+.seg button[data-v="Veteranos São Francisco"].on{background:#f0c04a;border-color:#f0c04a;color:#0a1f5c}
+.seg button[data-v="Veteranos São Francisco"].on b{color:#0a1f5c}
 
 main{max-width:880px;margin:0 auto;padding:12px 14px 20px}
 /* ---------- hero do grupo ---------- */
 .hero{position:relative;overflow:hidden;border-radius:20px;border:1px solid var(--line);background:var(--hero);padding:18px 16px 14px;margin:2px 0 12px}
 .hero::before{content:"";position:absolute;inset:0;background:var(--stripe);opacity:.55;pointer-events:none}
 .hero>*{position:relative}
+img.logo.esc{background:none;border-radius:0;object-fit:contain;width:34px;height:36px}
+.hero .esc{position:absolute;right:14px;top:14px;width:84px;height:auto;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
+.hero.com-esc h2{padding-right:92px}
 .hero .kick{font:700 12px Barlow,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--acc2)}
 html[data-g="pl"] .hero .kick{color:var(--acc3)}
 .hero h2{font:800 42px/.95 "Barlow Condensed",sans-serif;margin:4px 0 14px;text-transform:uppercase;display:block}
@@ -129,9 +132,9 @@ button:disabled{opacity:.5}
 .rank{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
 .rank:last-child{border:0}
 .rank .pos{width:30px;height:30px;border-radius:9px;background:var(--card2);display:grid;place-items:center;font:800 17px "Barlow Condensed",sans-serif;color:var(--mut);flex:none}
-.rank:nth-child(1) .pos{background:var(--acc);color:var(--onacc)}
-.rank:nth-child(2) .pos{background:var(--acc2);color:#1a0f00}
-.rank:nth-child(3) .pos{background:var(--acc3);color:#111}
+.rank:nth-child(1 of .rank) .pos{background:var(--acc);color:var(--onacc)}
+.rank:nth-child(2 of .rank) .pos{background:var(--acc2);color:#1a0f00}
+.rank:nth-child(3 of .rank) .pos{background:var(--acc3);color:#111}
 .rank .nm{flex:1;min-width:0;font-weight:600}
 .rank .val{font:800 18px "Barlow Condensed",sans-serif;text-align:right;white-space:nowrap}
 .bar{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-top:5px}
@@ -195,16 +198,17 @@ dialog#dlgCard{width:min(96vw,560px);max-height:94vh;padding:12px;overflow:auto}
 .ytbl i.yd{display:inline-block;width:14px;height:14px;min-width:14px;border-radius:50%;background:rgba(255,255,255,.14);vertical-align:middle}.ytbl i.yd.y1{background:#3ddc84}.ytbl i.yd.y0{background:#e5484d}.ytbl i.yd.yi{background:#99aab5}.ytbl i.yd.yn{width:8px;min-width:8px;height:2px;border-radius:0;background:rgba(255,255,255,.28)}
 .ytbl tr.tot td{font-weight:800;color:var(--mut)}
 </style>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest-veteranos.json">
+<link rel="icon" type="image/png" href="icons/vet-favicon.png">
+<link rel="apple-touch-icon" href="icons/vet-apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Veteranos">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </head>
 <body>
 <header class="top">
   <div class="tbar">
-    <div class="logo">VSF</div>
+    <img class="logo esc" src="icons/escudo_veteranos.png" alt="Escudo Veteranos São Francisco">
     <h1>Veteranos</h1>
     <button class="ibtn" id="btnRef" title="Atualizar" aria-label="Atualizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
     <button class="ibtn" id="btnCfg" title="Configuração" aria-label="Configuração"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
@@ -280,7 +284,7 @@ const cfg = {
 const GRUPO_DIA = { 'Croma 2 Futebol de Sexta': 5, 'Veteranos São Francisco': 2 };
 const GRUPO_INFO = {
   'Croma 2 Futebol de Sexta': { curto: 'Croma 2', dia: 'Sexta', sub: 'Futebol de Sexta', tema: 'll', kick: 'La Liga · toda sexta' },
-  'Veteranos São Francisco': { curto: 'Veteranos', dia: 'Terça', sub: 'São Francisco', tema: 'pl', kick: 'Premier League · toda terça' }
+  'Veteranos São Francisco': { curto: 'Veteranos', dia: 'Terça', sub: 'São Francisco', tema: 'pl', kick: 'Desde 2004 · toda terça' }
 };
 const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 function isoDe(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -298,7 +302,7 @@ const S = {
 };
 function aplicarTema() {
   document.documentElement.dataset.g = GRUPO_INFO[S.grupo].tema;
-  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = GRUPO_INFO[S.grupo].tema === 'pl' ? '#16001f' : '#0b0507';
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = GRUPO_INFO[S.grupo].tema === 'pl' ? '#06112e' : '#0b0507';
 }
 function setGrupo(g) {
   if (!GRUPOS.includes(g) || g === S.grupo) return;
@@ -489,7 +493,8 @@ function vHero() {
   const jg = D.jogos.filter(j => j.grupo === g);
   const rod = new Set(jg.map(j => j.data)).size;
   const at = ativos(g).length;
-  return '<section class="hero"><div class="kick">' + I.kick + '</div><h2>' + esc(I.curto) + ' <em>' + esc(I.sub) + '</em></h2>' +
+  const esc_ = g === 'Veteranos São Francisco';
+  return '<section class="hero' + (esc_ ? ' com-esc' : '') + '">' + (esc_ ? '<img class="esc" src="icons/escudo_veteranos.png" alt="">' : '') + '<div class="kick">' + I.kick + '</div><h2>' + esc(I.curto) + ' <em>' + esc(I.sub) + '</em></h2>' +
     '<div class="stats"><div><b>' + rod + '</b><span>rodadas</span></div><div><b>' + jg.length + '</b><span>jogos</span></div><div><b>' + at + '</b><span>ativos</span></div></div></section>';
 }
 
@@ -1017,9 +1022,9 @@ document.getElementById('cfgConta').addEventListener('click', e => {
 
 /* ====================== CARTÕES (imagens) ====================== */
 const TEMAS = {
-  'Veteranos São Francisco': {   // estilo Premier League
-    liga: 'pl', bg1: '#3b0a4d', bg2: '#16001f', acc: '#00ff85', acc2: '#e90052', acc3: '#04f5ff',
-    ink: '#ffffff', mut: '#cdb8e0', panel: 'rgba(255,255,255,0.08)', panel2: 'rgba(255,255,255,0.14)', line: 'rgba(255,255,255,0.18)', onacc: '#2a0038'
+  'Veteranos São Francisco': {   // cores do escudo
+    liga: 'pl', bg1: '#163a8a', bg2: '#06112e', acc: '#f0c04a', acc2: '#ffffff', acc3: '#45c3d3',
+    ink: '#ffffff', mut: '#b9c7e8', panel: 'rgba(255,255,255,0.08)', panel2: 'rgba(255,255,255,0.14)', line: 'rgba(255,255,255,0.18)', onacc: '#0a1f5c'
   },
   'Croma 2 Futebol de Sexta': {  // estilo La Liga
     liga: 'll', bg1: '#1c0b0f', bg2: '#060608', acc: '#ff4b3e', acc2: '#ff9d1c', acc3: '#ffffff',

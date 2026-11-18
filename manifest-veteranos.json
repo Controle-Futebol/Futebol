@@ -1,0 +1,18 @@
+{
+  "id": "./Painel_Veteranos.html",
+  "name": "Veteranos São Francisco",
+  "short_name": "Veteranos",
+  "description": "Jogos, classificação, artilharia e pagamentos dos Veteranos São Francisco (terça) · Toledo - PR.",
+  "lang": "pt-BR",
+  "start_url": "./Painel_Veteranos.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e0f13",
+  "theme_color": "#06112e",
+  "icons": [
+    { "src": "icons/vet-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/vet-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/vet-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

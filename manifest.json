@@ -15,7 +15,7 @@
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Veteranos São Francisco", "short_name": "Veteranos", "url": "Painel_Veteranos.html", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Veteranos São Francisco", "short_name": "Veteranos", "url": "Painel_Veteranos.html", "icons": [{ "src": "icons/vet-192.png", "sizes": "192x192" }] },
     { "name": "Croma 2 Futebol de Sexta", "short_name": "Sexta", "url": "Painel_Sexta.html", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

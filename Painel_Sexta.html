@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ===== Temas por grupo: La Liga (sexta) e Premier League (terça) ===== */
+/* ===== Temas por grupo: La Liga (sexta) e cores do escudo (terça) ===== */
 :root,html[data-g="ll"]{
   --bg:#0b0507;--bg2:#1c0b0f;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.11);--line:rgba(255,255,255,.14);
   --ink:#fff;--mut:#c3b0b2;--acc:#ff4b3e;--acc2:#ff9d1c;--acc3:#fff;--onacc:#fff;
@@ -17,11 +17,11 @@
   --stripe:repeating-linear-gradient(115deg,rgba(255,75,62,.0) 0 22px,rgba(255,75,62,.22) 22px 34px);
 }
 html[data-g="pl"]{
-  --bg:#16001f;--bg2:#3b0a4d;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.14);--line:rgba(255,255,255,.18);
-  --ink:#fff;--mut:#cdb8e0;--acc:#00ff85;--acc2:#e90052;--acc3:#04f5ff;--onacc:#2a0038;
-  --ok:#00ff85;--okbg:rgba(0,255,133,.12);--warn:#ffd84d;--warnbg:rgba(255,216,77,.13);--bad:#ff5c8a;--badbg:rgba(233,0,82,.18);
-  --hero:linear-gradient(135deg,#4d1362 0%,#16001f 75%);
-  --stripe:radial-gradient(circle at 92% 14%,rgba(4,245,255,.30) 0 34px,transparent 35px),radial-gradient(circle at 80% 22%,rgba(233,0,82,.34) 0 22px,transparent 23px);
+  --bg:#06112e;--bg2:#163a8a;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.14);--line:rgba(255,255,255,.18);
+  --ink:#fff;--mut:#b9c7e8;--acc:#f0c04a;--acc2:#ffffff;--acc3:#45c3d3;--onacc:#0a1f5c;
+  --ok:#3ddc84;--okbg:rgba(61,220,132,.13);--warn:#ffd84d;--warnbg:rgba(255,216,77,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.16);
+  --hero:linear-gradient(135deg,#1c4eb4 0%,#06112e 75%);
+  --stripe:radial-gradient(circle at 92% 14%,rgba(69,195,211,.30) 0 34px,transparent 35px),radial-gradient(circle at 80% 22%,rgba(240,192,74,.34) 0 22px,transparent 23px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}
@@ -44,8 +44,8 @@ h1,h2,h3,.disp{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;l
 .seg button.on b{color:var(--onacc)}
 .seg button[data-v="Croma 2 Futebol de Sexta"].on{background:#ff4b3e;border-color:#ff4b3e;color:#fff}
 .seg button[data-v="Croma 2 Futebol de Sexta"].on b{color:#fff}
-.seg button[data-v="Veteranos São Francisco"].on{background:#00ff85;border-color:#00ff85;color:#2a0038}
-.seg button[data-v="Veteranos São Francisco"].on b{color:#2a0038}
+.seg button[data-v="Veteranos São Francisco"].on{background:#f0c04a;border-color:#f0c04a;color:#0a1f5c}
+.seg button[data-v="Veteranos São Francisco"].on b{color:#0a1f5c}
 
 main{max-width:880px;margin:0 auto;padding:12px 14px 20px}
 /* ---------- hero do grupo ---------- */
@@ -280,7 +280,7 @@ const cfg = {
 const GRUPO_DIA = { 'Croma 2 Futebol de Sexta': 5, 'Veteranos São Francisco': 2 };
 const GRUPO_INFO = {
   'Croma 2 Futebol de Sexta': { curto: 'Croma 2', dia: 'Sexta', sub: 'Futebol de Sexta', tema: 'll', kick: 'La Liga · toda sexta' },
-  'Veteranos São Francisco': { curto: 'Veteranos', dia: 'Terça', sub: 'São Francisco', tema: 'pl', kick: 'Premier League · toda terça' }
+  'Veteranos São Francisco': { curto: 'Veteranos', dia: 'Terça', sub: 'São Francisco', tema: 'pl', kick: 'Desde 2004 · toda terça' }
 };
 const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 function isoDe(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -298,7 +298,7 @@ const S = {
 };
 function aplicarTema() {
   document.documentElement.dataset.g = GRUPO_INFO[S.grupo].tema;
-  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = GRUPO_INFO[S.grupo].tema === 'pl' ? '#16001f' : '#0b0507';
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = GRUPO_INFO[S.grupo].tema === 'pl' ? '#06112e' : '#0b0507';
 }
 function setGrupo(g) {
   if (!GRUPOS.includes(g) || g === S.grupo) return;
@@ -1104,9 +1104,9 @@ document.getElementById('cfgConta').addEventListener('click', e => {
 
 /* ====================== CARTÕES (imagens) ====================== */
 const TEMAS = {
-  'Veteranos São Francisco': {   // estilo Premier League
-    liga: 'pl', bg1: '#3b0a4d', bg2: '#16001f', acc: '#00ff85', acc2: '#e90052', acc3: '#04f5ff',
-    ink: '#ffffff', mut: '#cdb8e0', panel: 'rgba(255,255,255,0.08)', panel2: 'rgba(255,255,255,0.14)', line: 'rgba(255,255,255,0.18)', onacc: '#2a0038'
+  'Veteranos São Francisco': {   // cores do escudo
+    liga: 'pl', bg1: '#163a8a', bg2: '#06112e', acc: '#f0c04a', acc2: '#ffffff', acc3: '#45c3d3',
+    ink: '#ffffff', mut: '#b9c7e8', panel: 'rgba(255,255,255,0.08)', panel2: 'rgba(255,255,255,0.14)', line: 'rgba(255,255,255,0.18)', onacc: '#0a1f5c'
   },
   'Croma 2 Futebol de Sexta': {  // estilo La Liga
     liga: 'll', bg1: '#1c0b0f', bg2: '#060608', acc: '#ff4b3e', acc2: '#ff9d1c', acc3: '#ffffff',
