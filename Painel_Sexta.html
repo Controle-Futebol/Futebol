@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0507">
+<meta name="theme-color" content="#06140a">
 <title>Croma 2 Futebol de Sexta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ===== Temas por grupo: La Liga (sexta) e cores do escudo (terça) ===== */
+/* ===== Temas por grupo: cores do escudo (sexta e terça) ===== */
 :root,html[data-g="ll"]{
-  --bg:#0b0507;--bg2:#1c0b0f;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.11);--line:rgba(255,255,255,.14);
-  --ink:#fff;--mut:#c3b0b2;--acc:#ff4b3e;--acc2:#ff9d1c;--acc3:#fff;--onacc:#fff;
+  --bg:#06140a;--bg2:#1a4a0c;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.11);--line:rgba(255,255,255,.14);
+  --ink:#fff;--mut:#c2d6b3;--acc:#9ee01a;--acc2:#4f8cff;--acc3:#fff;--onacc:#0a1a3a;
   --ok:#3ddc84;--okbg:rgba(61,220,132,.13);--warn:#ffcc4d;--warnbg:rgba(255,204,77,.13);--bad:#ff6b6b;--badbg:rgba(255,75,62,.15);
-  --hero:linear-gradient(135deg,#2a0d12 0%,#0b0507 70%);
-  --stripe:repeating-linear-gradient(115deg,rgba(255,75,62,.0) 0 22px,rgba(255,75,62,.22) 22px 34px);
+  --hero:linear-gradient(135deg,#3f7d0e 0%,#06140a 72%);
+  --stripe:repeating-linear-gradient(115deg,rgba(158,224,26,.0) 0 22px,rgba(158,224,26,.20) 22px 34px);
 }
 html[data-g="pl"]{
   --bg:#06112e;--bg2:#163a8a;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.14);--line:rgba(255,255,255,.18);
@@ -42,8 +42,8 @@ h1,h2,h3,.disp{font-family:"Barlow Condensed","Arial Narrow",Impact,sans-serif;l
 .seg button span{font-size:12px}
 .seg button.on{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
 .seg button.on b{color:var(--onacc)}
-.seg button[data-v="Croma 2 Futebol de Sexta"].on{background:#ff4b3e;border-color:#ff4b3e;color:#fff}
-.seg button[data-v="Croma 2 Futebol de Sexta"].on b{color:#fff}
+.seg button[data-v="Croma 2 Futebol de Sexta"].on{background:#9ee01a;border-color:#9ee01a;color:#0a1a3a}
+.seg button[data-v="Croma 2 Futebol de Sexta"].on b{color:#0a1a3a}
 .seg button[data-v="Veteranos São Francisco"].on{background:#f0c04a;border-color:#f0c04a;color:#0a1f5c}
 .seg button[data-v="Veteranos São Francisco"].on b{color:#0a1f5c}
 
@@ -195,9 +195,10 @@ dialog#dlgCard{width:min(96vw,560px);max-height:94vh;padding:12px;overflow:auto}
 .ytbl i.yd{display:inline-block;width:14px;height:14px;min-width:14px;border-radius:50%;background:rgba(255,255,255,.14);vertical-align:middle}.ytbl i.yd.y1{background:#3ddc84}.ytbl i.yd.y0{background:#e5484d}.ytbl i.yd.yi{background:#99aab5}.ytbl i.yd.yn{width:8px;min-width:8px;height:2px;border-radius:0;background:rgba(255,255,255,.28)}
 .ytbl tr.tot td{font-weight:800;color:var(--mut)}
 </style>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest-sexta.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Croma 2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </head>
@@ -279,7 +280,7 @@ const cfg = {
 };
 const GRUPO_DIA = { 'Croma 2 Futebol de Sexta': 5, 'Veteranos São Francisco': 2 };
 const GRUPO_INFO = {
-  'Croma 2 Futebol de Sexta': { curto: 'Croma 2', dia: 'Sexta', sub: 'Futebol de Sexta', tema: 'll', kick: 'La Liga · toda sexta' },
+  'Croma 2 Futebol de Sexta': { curto: 'Croma 2', dia: 'Sexta', sub: 'Futebol de Sexta', tema: 'll', kick: 'Desde 2019 · toda sexta' },
   'Veteranos São Francisco': { curto: 'Veteranos', dia: 'Terça', sub: 'São Francisco', tema: 'pl', kick: 'Desde 2004 · toda terça' }
 };
 const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -298,7 +299,7 @@ const S = {
 };
 function aplicarTema() {
   document.documentElement.dataset.g = GRUPO_INFO[S.grupo].tema;
-  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = GRUPO_INFO[S.grupo].tema === 'pl' ? '#06112e' : '#0b0507';
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = GRUPO_INFO[S.grupo].tema === 'pl' ? '#06112e' : '#06140a';
 }
 function setGrupo(g) {
   if (!GRUPOS.includes(g) || g === S.grupo) return;
@@ -605,7 +606,7 @@ const METRICAS = {
   gk:     { t: 'Goleiros', f: p => p.gj >= 2 ? -p.gs / p.gj : -999, show: p => (p.gs / p.gj).toFixed(1) + ' gols/jogo (' + p.gj + ' jogos)', min: p => p.gj >= 2 },
   contra: { t: 'Gols contra', f: p => p.contra, show: p => p.contra + 'x', min: p => p.contra > 0 }
 };
-/* classificação estilo La Liga: 3 pontos por vitória, 1 por empate */
+/* classificação: 3 pontos por vitória, 1 por empate */
 const ptsDe = p => 3 * p.vit + p.emp;
 const aprovDe = p => p.jogos ? ptsDe(p) / (3 * p.jogos) : 0;
 function tabelaClass(grupo, ate) {
@@ -1108,9 +1109,9 @@ const TEMAS = {
     liga: 'pl', bg1: '#163a8a', bg2: '#06112e', acc: '#f0c04a', acc2: '#ffffff', acc3: '#45c3d3',
     ink: '#ffffff', mut: '#b9c7e8', panel: 'rgba(255,255,255,0.08)', panel2: 'rgba(255,255,255,0.14)', line: 'rgba(255,255,255,0.18)', onacc: '#0a1f5c'
   },
-  'Croma 2 Futebol de Sexta': {  // estilo La Liga
-    liga: 'll', bg1: '#1c0b0f', bg2: '#060608', acc: '#ff4b3e', acc2: '#ff9d1c', acc3: '#ffffff',
-    ink: '#ffffff', mut: '#c3b0b2', panel: 'rgba(255,255,255,0.06)', panel2: 'rgba(255,255,255,0.12)', line: 'rgba(255,255,255,0.16)', onacc: '#ffffff'
+  'Croma 2 Futebol de Sexta': {  // cores do escudo (limão e royal)
+    liga: 'll', bg1: '#1a4a0c', bg2: '#04100a', acc: '#9ee01a', acc2: '#4f8cff', acc3: '#ffffff',
+    ink: '#ffffff', mut: '#c2d6b3', panel: 'rgba(255,255,255,0.06)', panel2: 'rgba(255,255,255,0.12)', line: 'rgba(255,255,255,0.16)', onacc: '#0a1a3a'
   }
 };
 const FONTE = '"Segoe UI", "Helvetica Neue", Roboto, Arial, sans-serif';
@@ -1162,7 +1163,7 @@ function cvFundo(c, T, W, H) {
     });
     c.globalAlpha = 0.05; c.fillStyle = T.acc; c.beginPath(); c.arc(-80, H - 160, 380, 0, 7); c.fill();
   } else {
-    const r = c.createLinearGradient(0, 0, W, 340); r.addColorStop(0, '#e5202d'); r.addColorStop(1, '#ff8a1c');
+    const r = c.createLinearGradient(0, 0, W, 340); r.addColorStop(0, '#2f6f0c'); r.addColorStop(1, '#6fb515');
     c.fillStyle = r; c.beginPath(); c.moveTo(0, 0); c.lineTo(W, 0); c.lineTo(W, 120); c.lineTo(0, 330); c.closePath(); c.globalAlpha = 0.95; c.fill();
     c.globalAlpha = 0.06; c.lineWidth = 46; c.strokeStyle = '#fff'; c.beginPath(); c.arc(W - 40, H - 260, 330, 0, 7); c.stroke();
     c.globalAlpha = 0.05; c.beginPath(); c.arc(W - 40, H - 260, 190, 0, 7); c.stroke();
