@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Futebol Amador · Toledo</title>
+<title>Futebol Amador · Toledo - PR</title>
 <style>
   :root{--bg:#0e0f13;--card:#181a21;--txt:#f4f4f6;--mut:#9a9eac}
   *{box-sizing:border-box;margin:0}
@@ -11,6 +11,7 @@
   main{width:100%;max-width:440px}
   .ball{font-size:44px;text-align:center}
   h1{text-align:center;font-size:26px;margin:8px 0 4px;letter-spacing:.5px}
+  .cid{text-align:center;font-size:14px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin:4px 0 10px;color:#f5a05a}
   .sub{text-align:center;color:var(--mut);font-size:14px;margin-bottom:28px}
   a.g{display:block;text-decoration:none;color:#fff;border-radius:18px;padding:22px 22px 20px;margin-bottom:16px;position:relative;overflow:hidden;transition:transform .12s}
   a.g:active{transform:scale(.98)}
@@ -22,11 +23,17 @@
   .vet{background:linear-gradient(135deg,#3d0a5c,#7b1fa2 60%,#00b894)}
   footer{margin-top:20px;color:var(--mut);font-size:12px;text-align:center}
 </style>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </head>
 <body>
 <main>
   <div class="ball">⚽</div>
-  <h1>Futebol Amador · Toledo</h1>
+  <h1>Futebol Amador</h1>
+  <div class="cid">Toledo - PR</div>
   <p class="sub">Escolha o grupo</p>
 
   <a class="g sexta" href="Painel_Sexta.html">
@@ -43,7 +50,7 @@
     <i>›</i>
   </a>
 
-  <footer>Dica: no celular, use "Adicionar à tela inicial" no menu do navegador.</footer>
+  <footer>Dica: no celular, toque nos 3 pontinhos do Chrome e escolha "Instalar app".</footer>
 </main>
 </body>
 </html>
